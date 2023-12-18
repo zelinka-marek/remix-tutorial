@@ -19,10 +19,8 @@ module.exports = {
     commonjs: true,
     es6: true,
   },
-
   // Base config
   extends: ["eslint:recommended"],
-
   overrides: [
     // React
     {
@@ -45,7 +43,6 @@ module.exports = {
         ],
       },
     },
-
     // Typescript
     {
       files: ["**/*.{ts,tsx}"],
@@ -68,7 +65,6 @@ module.exports = {
         "plugin:import/typescript",
       ],
     },
-
     // Node
     {
       files: [".eslintrc.js"],
