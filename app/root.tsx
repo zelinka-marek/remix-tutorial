@@ -44,7 +44,11 @@ export default function App() {
   const { q, contacts } = useLoaderData<typeof loader>();
 
   const navigation = useNavigation();
+  const isSearching =
+    navigation.location &&
+    new URLSearchParams(navigation.location.search).has("q");
   const isLoading = navigation.state === "loading";
+  const shouldDisplayLoadingOverlay = isLoading && !isSearching;
 
   const submit = useSubmit();
 
@@ -77,12 +81,13 @@ export default function App() {
               <input
                 id="q"
                 aria-label="Search contacts"
+                className={isSearching ? "loading" : ""}
                 defaultValue={q ?? undefined}
                 placeholder="Search"
                 type="search"
                 name="q"
               />
-              <div id="search-spinner" aria-hidden hidden={true} />
+              <div id="search-spinner" aria-hidden hidden={!isSearching} />
             </Form>
             <Form method="post">
               <button type="submit">New</button>
@@ -118,7 +123,10 @@ export default function App() {
             )}
           </nav>
         </div>
-        <div id="detail" className={isLoading ? "loading" : ""}>
+        <div
+          id="detail"
+          className={shouldDisplayLoadingOverlay ? "loading" : ""}
+        >
           <Outlet />
         </div>
         <ScrollRestoration />
