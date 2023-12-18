@@ -1,4 +1,9 @@
-import { json, redirect, type LinksFunction } from "@remix-run/node";
+import {
+  json,
+  redirect,
+  type LinksFunction,
+  type LoaderFunctionArgs,
+} from "@remix-run/node";
 import {
   Form,
   Links,
@@ -10,7 +15,9 @@ import {
   ScrollRestoration,
   useLoaderData,
   useNavigation,
+  useSubmit,
 } from "@remix-run/react";
+import { useEffect } from "react";
 import { createEmptyContact, getContacts } from "./api/contacts";
 import appStylesHref from "./index.css";
 
@@ -18,10 +25,13 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: appStylesHref },
 ];
 
-export async function loader() {
-  const contacts = await getContacts();
+export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const q = url.searchParams.get("q");
 
-  return json({ contacts });
+  const contacts = await getContacts(q);
+
+  return json({ q, contacts });
 }
 
 export async function action() {
@@ -31,10 +41,19 @@ export async function action() {
 }
 
 export default function App() {
-  const { contacts } = useLoaderData<typeof loader>();
+  const { q, contacts } = useLoaderData<typeof loader>();
 
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
+
+  const submit = useSubmit();
+
+  useEffect(() => {
+    const searchField = document.getElementById("q");
+    if (searchField instanceof HTMLInputElement) {
+      searchField.value = q || "";
+    }
+  }, [q]);
 
   return (
     <html lang="en">
@@ -48,10 +67,17 @@ export default function App() {
         <div id="sidebar">
           <h1>Remix Contacts</h1>
           <div>
-            <Form id="search-form" role="search">
+            <Form
+              id="search-form"
+              role="search"
+              onChange={(event) => {
+                submit(event.currentTarget);
+              }}
+            >
               <input
                 id="q"
                 aria-label="Search contacts"
+                defaultValue={q ?? undefined}
                 placeholder="Search"
                 type="search"
                 name="q"
